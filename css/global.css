@@ -1,0 +1,89 @@
+/* =========================================
+   CONTENEURS & TYPOGRAPHIE
+========================================= */
+
+.container {
+  max-width: 1300px;
+  margin: auto;
+  padding: 60px 20px;
+}
+
+h1, h2, h3, h4, .product_title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+}
+
+h1 { font-size: 54px; text-transform: uppercase; margin-bottom: 30px; }
+h2 { font-size: 38px; margin-bottom: 20px; }
+p { color: var(--text-soft); }
+
+/* Lignes dorées de séparation élégantes */
+hr, .separator {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+  margin: 40px 0;
+}
+
+/* =========================================
+   BOUTONS (DÉSIR & CONVERSION)
+========================================= */
+
+.btn-reserver, .btn-primary, .button, button.single_add_to_cart_button {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: #fff;
+  padding: 14px 30px;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  display: inline-block;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow-red);
+}
+
+.btn-reserver:hover, .btn-primary:hover, .button:hover, button.single_add_to_cart_button:hover {
+  background: transparent;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px var(--color-secondary)
+}
+
+.btn-gold {
+  background: transparent;
+  border: 1px solid var(--color-gold);
+  color: var(--color-gold);
+}
+.btn-gold:hover {
+  background: var(--color-gold);
+  color: var(--color-bg);
+  box-shadow: var(--shadow-gold);
+}
+
+input, select, textarea {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 14px;
+  border-radius: var(--radius);
+  color: white;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+  transition: var(--transition);
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-gold);
+  box-shadow: 0 0 10px rgba(197, 160, 89, 0.2);
+}
+
+@media (max-width: 900px) {
+  h1 { font-size: 36px; }
+  h2 { font-size: 28px; }
+}

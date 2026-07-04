@@ -1,0 +1,270 @@
+/* =========================================
+   HEADER & NAVIGATION
+========================================= */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 999;
+  background: rgba(3, 3, 3, 0.9);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(197, 160, 89, 0.2);
+  padding: 15px 20px;
+}
+
+.header-inner {
+  max-width: 1400px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.logo {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+  min-width: 0; /* permet au flex-item de rétrécir au lieu de déborder */
+}
+.logo a {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-gold);
+  text-decoration: none;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.logo span {
+  color: var(--color-primary);
+}
+.logo-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none !important;
+  gap: 15px;
+  min-width: 0;
+}
+
+.logo-img {
+  max-height: 80px;
+  width: auto;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  min-width: 0;
+}
+
+.logo .gold-text {
+    color: var(--color-gold) !important;
+    font-style: italic;
+    text-shadow: 0 0 10px rgba(197, 160, 89, 0.3);
+}
+.header-actions {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.tagline {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    letter-spacing: 3px;
+    margin-top: 5px;
+}
+.nav-list-luxe {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-list-luxe li a {
+    color: #ffffff;
+    text-decoration: none;
+    font-family: 'Playfair Display', serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.nav-list-luxe li a:hover {
+    color: var(--color-primary); 
+}
+.nav-list-luxe li a::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 1px;
+    background: #d4af37;
+    transition: width 0.3s;
+}
+
+.nav-list-luxe li a:hover::after {
+    width: 100%;
+}
+
+/* Bouton Réserver "Clef du Secret" */
+.btn-reserver-luxe {
+    background: var(--color-primary) !important;
+    color: var(--color-gold) !important;
+    padding: 12px 25px !important;
+    font-size: 12px !important;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.5s ease;
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    margin: 0 !important;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.btn-reserver-luxe:hover {
+    background: var(--color-gold) !important;
+    color: #000 !important;
+    box-shadow: 0 0 20px rgba(197, 160, 89, 0.4);
+}
+
+/*======================
+    NAVIGATION PRINCIPALE
+======================*/
+.main-nav {
+    flex: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.main-nav ul {
+  display: flex;
+  gap: 35px;
+  list-style: none;
+}
+
+.main-nav a {
+  color: var(--text-soft);
+  text-decoration: none;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: var(--transition);
+  position: relative;
+}
+
+.main-nav a::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 1px;
+  background: var(--color-primary);
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: var(--transition);
+}
+
+.main-nav a:hover { color: var(--color-gold); }
+.main-nav a:hover::after { width: 100%; }
+
+/* Menu Burger */
+.burger {
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 1000;
+  flex-shrink: 0;
+  padding: 8px;
+}
+
+.burger span {
+  width: 26px;
+  height: 2px;
+  background: var(--color-gold);
+  transition: var(--transition);
+}
+
+@media (max-width: 900px) {
+  .main-nav {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 280px;
+    max-width: 80vw;
+    height: 100vh;
+    background: rgba(3, 3, 3, 0.98);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(197, 160, 89, 0.2);
+    padding: 100px 30px 30px;
+    transition: var(--transition);
+    display: block !important;
+    z-index: 998;
+  }
+
+  .main-nav.open { right: 0; }
+
+  .main-nav ul {
+    flex-direction: column;
+    gap: 25px;
+  }
+
+  .burger { display: flex; }
+
+  /* Sur mobile, le bouton réserver passe en icône compacte pour laisser la place au burger */
+  .btn-reserver-luxe span.btn-text {
+    display: none;
+  }
+  .btn-reserver-luxe {
+    padding: 10px 14px !important;
+  }
+  #burger-reserver-item {
+    width: 100%;
+    margin-top: 15px; /* Espace après le dernier titre du menu */
+    display: flex;
+    justify-content: flex-start; /* Aligné à gauche comme les autres titres */
+  }
+
+  #burger-reserver-item .btn-reserver-luxe {
+    display: inline-flex !important;
+    width: auto;
+    padding: 12px 25px !important; /* On lui redonne sa taille normale */
+  }
+
+  #burger-reserver-item .btn-reserver-luxe span.btn-text {
+    display: inline !important; /* On force le texte à réapparaître dans la liste */
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-text {
+    font-size: 13px;
+  }
+  
+  .tagline {
+    display: none; /* Trop d'infos pour un très petit écran */
+  }
+  
+  /* On masque le bouton de l'en-tête pour faire de la place au logo */
+  #burger-reserver-item .btn-reserver-luxe {
+    width: 100%; /* Devient pleine largeur uniquement sur très petit écran */
+    justify-content: center;
+  }
+}
