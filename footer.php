@@ -10,7 +10,7 @@
       <h4>Conciergerie</h4>
       <p><i class="fas fa-map-marker-alt"></i> Discrètement situé à Bettant</p>
       <p><a href="tel:+33780572710"><i class="fas fa-phone"></i> 07 80 57 27 10</a></p>
-      <p><a href="mailto:contact@instantplaisir.fr"><i class="fas fa-envelope"></i> contact@instantplaisir.fr</a></p>
+      <p><a href="mailto:reservation@linstantplaisir.fr"><i class="fas fa-envelope"></i> reservation@linstantplaisir.fr</a></p>
     </div>
 
     <div class="footer-col">
