@@ -49,7 +49,7 @@ if ( isset($_POST['lip_contact_nonce']) && wp_verify_nonce($_POST['lip_contact_n
             <ul class="contact-details-list">
                 <li><i class="fas fa-map-marker-alt"></i> Discrètement situé à Bettant</li>
                 <li><a href="tel:+33780572710"><i class="fas fa-phone"></i> 07 80 57 27 10</a></li>
-                <li><a href="mailto:contact@instantplaisir.fr"><i class="fas fa-envelope"></i> contact@instantplaisir.fr</a></li>
+                <li><a href="mailto:reservation@linstantplaisir.fr"><i class="fas fa-envelope"></i> reservation@linstantplaisir.fr</a></li>
             </ul>
         </div>
 
