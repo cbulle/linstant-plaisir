@@ -131,7 +131,7 @@ function linstant_plaisir_shop_suggestions_html( $limit = 6, $exclude = array() 
     ?>
     <div id="shop-suggestions-luxe" class="shop-suggestions-luxe woocommerce">
         <div class="container">
-            <h2 class="shop-suggestions-title">L'Univers Secret</h2>
+            <h2 class="shop-suggestions-title">Envie d'un séjour encore plus unique</h2>
             <ul class="products columns-4">
                 <?php foreach ($products as $wc_product): ?>
                     <li <?php wc_product_class('', $wc_product); ?>>
