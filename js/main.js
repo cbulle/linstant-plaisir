@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-    // =========================================
-// GESTION DU BURGER — DÉPLACEMENT DU BOUTON EXISTANT
+// =========================================
+// GESTION DU BURGER — VERSION CLASSIQUE & FLUIDE
 // =========================================
 const burger = document.querySelector(".burger");
 const menu = document.querySelector(".main-nav");
@@ -10,36 +10,54 @@ const headerActions = document.querySelector(".header-actions");
 const btnReserver = document.querySelector(".btn-reserver-luxe");
 
 if (burger && menu && navList && btnReserver && headerActions) {
-    // Création d'un conteneur <li> unique pour accueillir ton bouton dans la liste
+    // Création d'un conteneur <li> unique pour accueillir le bouton dans la liste mobile
     const liContainer = document.createElement("li");
     liContainer.id = "burger-reserver-item";
+    liContainer.className = "menu-item burger-btn-container"; // Garde la cohérence de style
 
-    burger.addEventListener("click", function () {
-        menu.classList.toggle("open");
+    function toggleMenu() {
+        const isOpen = menu.classList.toggle("open");
+        burger.classList.toggle("active"); // Pour l'effet de croix
 
-        if (menu.classList.contains("open")) {
-            // On glisse ton bouton existant dans le <li> puis dans la liste du menu
+        if (isOpen) {
+            // Empêche le défilement de la page en arrière-plan quand le menu est ouvert
+            document.body.style.overflow = "hidden";
+            // On déplace le bouton "Réserver" à la fin de la liste du menu mobile
             liContainer.appendChild(btnReserver);
             navList.appendChild(liContainer);
         } else {
-            // On remet ton bouton à sa place initiale dans le header quand on ferme
+            document.body.style.overflow = "";
+            // On remet le bouton à sa place d'origine dans le header
             headerActions.insertBefore(btnReserver, burger);
+        }
+    }
+
+    burger.addEventListener("click", function (e) {
+        e.stopPropagation();
+        toggleMenu();
+    });
+
+    // Fermeture en cliquant sur un lien du menu (essentiel pour les ancres/pages)
+    navList.addEventListener("click", function (e) {
+        if (e.target.tagName === "A" && menu.classList.contains("open")) {
+            toggleMenu();
         }
     });
 
-    // Fermeture en cliquant en dehors
+    // Fermeture en cliquant en dehors du menu
     document.addEventListener("click", function (e) {
         if (!menu.contains(e.target) && !burger.contains(e.target) && menu.classList.contains("open")) {
-            menu.classList.remove("open");
-            headerActions.insertBefore(btnReserver, burger);
+            toggleMenu();
         }
     });
 
-    // Sécurité : Si l'écran est redimensionné au-dessus de 900px, on remet le bouton à sa place d'origine
+    // Sécurité : Redimensionnement de l'écran (> 900px)
     window.addEventListener("resize", function() {
-        if (window.innerWidth > 900 && menu.contains(btnReserver)) {
+        if (window.innerWidth > 900 && menu.classList.contains("open")) {
             headerActions.insertBefore(btnReserver, burger);
             menu.classList.remove("open");
+            burger.classList.remove("active");
+            document.body.style.overflow = "";
         }
     });
 }
