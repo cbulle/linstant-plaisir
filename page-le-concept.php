@@ -112,7 +112,7 @@ endif;
 
 <section class="concept-cta">
     <div class="container">
-        <a href="<?php echo esc_url( home_url('/room/love-room/') ); ?>" class="btn-gold-full">Réserver</a>
+        <a href="<?php echo esc_url( home_url('/produit/loveroom/') ); ?>" class="btn-gold-full">Réserver</a>
     </div>
 </section>
 
