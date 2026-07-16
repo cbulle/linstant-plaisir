@@ -24,7 +24,7 @@ function get_url_by_media_slug($slug) {
     <div class="hero-content-luxe">
         <span class="hero-subtitle">Bettant — Sanctuaire Privé</span>
         <h1>L'Instant <br><span class="gold-title">Plaisir</span></h1>
-        <p>Une parenthèse interdite au cœur de l'élégance. <br>Laissez vos sens dicter les règles.</p>
+        <p>Une parenthèse intime hors du temps. <br>Laissez vos sens dicter les règles.</p>
         
         <div class="hero-buttons">
             <a href="<?php echo esc_url( home_url( '/produit/loveroom/' ) ); ?>" class="btn-gold-full">Découvrir la Suite</a>
