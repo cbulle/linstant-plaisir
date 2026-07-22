@@ -1,0 +1,103 @@
+/* ==========================================================================
+   Formulaire de réservation Love Room
+   ========================================================================== */
+
+.lip-booking-dates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin: 20px 0;
+}
+
+.lip-booking-dates .form-row {
+    flex: 1;
+    min-width: 140px;
+    margin: 0;
+}
+
+.lip-booking-dates label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #c5a059;
+    margin-bottom: 6px;
+}
+
+.lip-booking-dates input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    background: #111;
+    border: 1px solid #c5a059;
+    border-radius: 4px;
+    color: #f5f5f5;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+}
+
+.lip-price-box {
+    flex-basis: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 12px 0;
+    border-top: 1px solid rgba(197, 160, 89, 0.3);
+    margin: 4px 0 0;
+}
+
+.lip-price-label {
+    font-family: 'Playfair Display', serif;
+    color: #f5f5f5;
+}
+
+.lip-price-amount {
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    color: #c5a059;
+}
+
+/* ==========================================================================
+   Flatpickr — habillage aux couleurs du thème
+   ========================================================================== */
+
+.flatpickr-calendar {
+    background: #0d0d0d !important;
+    border: 1px solid #c5a059 !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+.flatpickr-months,
+.flatpickr-weekdays {
+    background: #0d0d0d !important;
+}
+
+.flatpickr-month,
+.flatpickr-weekday {
+    color: #c5a059 !important;
+    fill: #c5a059 !important;
+}
+
+.flatpickr-day {
+    color: #f5f5f5 !important;
+}
+
+.flatpickr-day.flatpickr-disabled {
+    color: #555 !important;
+    text-decoration: line-through;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.selected:hover {
+    background: #8b0a6e !important;
+    border-color: #8b0a6e !important;
+}
+
+.flatpickr-day.today {
+    border-color: #c5a059 !important;
+}
+
+.flatpickr-day:hover {
+    background: rgba(197, 160, 89, 0.25) !important;
+}
