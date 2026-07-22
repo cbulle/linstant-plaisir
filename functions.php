@@ -26,10 +26,18 @@ function linstant_plaisir_scripts()
     // Flatpickr : calendrier de dates avec blocage des jours déjà réservés — uniquement sur la page Love Room
     // Hébergé en local dans le thème (au lieu du CDN cdnjs) pour éviter qu'un bloqueur de pub / vie privée
     // du navigateur ne bloque silencieusement le script et casse le calendrier + le calcul du prix.
+    // Filet de sécurité : si le fichier local est absent/mal nommé sur le serveur (donc erreur 404),
+    // un script de secours identique est chargé automatiquement depuis un CDN, pour que le
+    // calendrier fonctionne toujours, même en cas d'oubli lors de l'upload par (S)FTP.
     if (function_exists('is_product') && is_product() && get_queried_object_id() === lip_get_room_product_id()) {
         wp_enqueue_style('flatpickr', get_template_directory_uri() . '/css/flatpickr.min.css', array(), '4.6.13');
+
         wp_enqueue_script('flatpickr', get_template_directory_uri() . '/js/flatpickr/flatpickr.min.js', array(), '4.6.13', true);
+        wp_add_inline_script('flatpickr', "if (typeof flatpickr === 'undefined') { document.write('<scr' + 'ipt src=\"https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js\"><\/scr' + 'ipt>'); }");
+
         wp_enqueue_script('flatpickr-fr', get_template_directory_uri() . '/js/flatpickr/fr.js', array('flatpickr'), '4.6.13', true);
+        wp_add_inline_script('flatpickr-fr', "if (typeof flatpickr === 'undefined' || !flatpickr.l10ns || !flatpickr.l10ns.fr) { document.write('<scr' + 'ipt src=\"https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/fr.js\"><\/scr' + 'ipt>'); }");
+
         $theme_js_deps[] = 'flatpickr';
         $theme_js_deps[] = 'flatpickr-fr';
     }
