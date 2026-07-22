@@ -31,6 +31,11 @@ function linstant_plaisir_scripts()
     // calendrier fonctionne toujours, même en cas d'oubli lors de l'upload par (S)FTP.
     if (function_exists('is_product') && is_product() && get_queried_object_id() === lip_get_room_product_id()) {
         wp_enqueue_style('flatpickr', get_template_directory_uri() . '/css/flatpickr.min.css', array(), '4.6.13');
+        // Un fichier CSS manquant/mal nommé ne déclenche pas d'erreur JS détectable (contrairement à un
+        // script), donc on charge systématiquement une seconde copie depuis un CDN en secours : si le
+        // fichier local existe, cette ligne est juste redondante (aucun souci) ; s'il est absent, c'est
+        // cette copie qui habille le calendrier.
+        wp_enqueue_style('flatpickr-cdn-fallback', 'https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css', array(), '4.6.13');
 
         wp_enqueue_script('flatpickr', get_template_directory_uri() . '/js/flatpickr/flatpickr.min.js', array(), '4.6.13', true);
         wp_add_inline_script('flatpickr', "if (typeof flatpickr === 'undefined') { document.write('<scr' + 'ipt src=\"https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js\"><\/scr' + 'ipt>'); }");
@@ -144,13 +149,19 @@ function lip_render_room_booking_box()
             <div class="lip-booking-dates">
                 <p class="form-row lip-check-in">
                     <label for="lip_check_in"><?php esc_html_e('Arrivée', 'linstant-plaisir'); ?></label>
-                    <input type="text" id="lip_check_in" name="lip_check_in" readonly
-                        value="<?php echo esc_attr($today); ?>" required>
+                    <span class="lip-date-field">
+                        <input type="text" id="lip_check_in" name="lip_check_in" readonly
+                            value="<?php echo esc_attr($today); ?>" required>
+                        <svg class="lip-calendar-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                    </span>
                 </p>
                 <p class="form-row lip-check-out">
                     <label for="lip_check_out"><?php esc_html_e('Départ', 'linstant-plaisir'); ?></label>
-                    <input type="text" id="lip_check_out" name="lip_check_out" readonly
-                        value="<?php echo esc_attr($tomorrow); ?>" required>
+                    <span class="lip-date-field">
+                        <input type="text" id="lip_check_out" name="lip_check_out" readonly
+                            value="<?php echo esc_attr($tomorrow); ?>" required>
+                        <svg class="lip-calendar-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                    </span>
                 </p>
                 <p class="lip-price-box">
                     <span class="lip-price-label"><?php esc_html_e('Prix du séjour', 'linstant-plaisir'); ?></span>
@@ -424,6 +435,7 @@ add_action('admin_enqueue_scripts', function ($hook) {
         return;
 
     wp_enqueue_style('flatpickr', get_template_directory_uri() . '/css/flatpickr.min.css', array(), '4.6.13');
+    wp_enqueue_style('flatpickr-cdn-fallback', 'https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css', array(), '4.6.13');
 
     wp_enqueue_script('flatpickr', get_template_directory_uri() . '/js/flatpickr/flatpickr.min.js', array(), '4.6.13', true);
     wp_add_inline_script('flatpickr', "if (typeof flatpickr === 'undefined') { document.write('<scr' + 'ipt src=\"https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js\"><\/scr' + 'ipt>'); }");
