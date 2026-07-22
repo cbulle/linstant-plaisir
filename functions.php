@@ -24,10 +24,12 @@ function linstant_plaisir_scripts()
     $theme_js_deps = array('jquery');
 
     // Flatpickr : calendrier de dates avec blocage des jours déjà réservés — uniquement sur la page Love Room
+    // Hébergé en local dans le thème (au lieu du CDN cdnjs) pour éviter qu'un bloqueur de pub / vie privée
+    // du navigateur ne bloque silencieusement le script et casse le calendrier + le calcul du prix.
     if (function_exists('is_product') && is_product() && get_queried_object_id() === lip_get_room_product_id()) {
-        wp_enqueue_style('flatpickr', 'https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css', array(), '4.6.13');
-        wp_enqueue_script('flatpickr', 'https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js', array(), '4.6.13', true);
-        wp_enqueue_script('flatpickr-fr', 'https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/fr.js', array('flatpickr'), '4.6.13', true);
+        wp_enqueue_style('flatpickr', get_template_directory_uri() . '/css/flatpickr.min.css', array(), '4.6.13');
+        wp_enqueue_script('flatpickr', get_template_directory_uri() . '/js/flatpickr/flatpickr.min.js', array(), '4.6.13', true);
+        wp_enqueue_script('flatpickr-fr', get_template_directory_uri() . '/js/flatpickr/fr.js', array('flatpickr'), '4.6.13', true);
         $theme_js_deps[] = 'flatpickr';
         $theme_js_deps[] = 'flatpickr-fr';
     }
@@ -68,13 +70,29 @@ function lip_get_room_product_id()
     return $id;
 }
 
-// Renvoie le prix d'une nuit pour une date donnée (format Y-m-d), tarif spécial si défini, sinon prix par défaut.
+// Renvoie le prix d'une nuit pour une date donnée (format Y-m-d).
+// Ordre de priorité : 1) tarif spécial pour CETTE date précise, 2) tarif du jour de la semaine
+// (Lundi/Mardi/.../Dimanche), 3) prix par défaut du produit (onglet Général).
 function lip_get_room_price_for_date($date_ymd, $default_price)
 {
-    $overrides = get_post_meta(lip_get_room_product_id(), '_lip_price_overrides', true);
+    $product_id = lip_get_room_product_id();
+
+    // 1) Tarif spécial sur une date précise (prioritaire sur tout le reste)
+    $overrides = get_post_meta($product_id, '_lip_price_overrides', true);
     if (is_array($overrides) && isset($overrides[$date_ymd]) && $overrides[$date_ymd] > 0) {
         return (float) $overrides[$date_ymd];
     }
+
+    // 2) Tarif du jour de la semaine (1 = Lundi ... 7 = Dimanche)
+    $weekly = get_post_meta($product_id, '_lip_weekly_prices', true);
+    if (is_array($weekly)) {
+        $weekday = date('N', strtotime($date_ymd)); // '1' à '7'
+        if (isset($weekly[$weekday]) && $weekly[$weekday] > 0) {
+            return (float) $weekly[$weekday];
+        }
+    }
+
+    // 3) Prix par défaut du produit
     return (float) $default_price;
 }
 
@@ -331,7 +349,7 @@ add_action('wp_footer', function () {
 
 
 /* ==========================================================================
-   ADMIN — onglet "Tarifs par date" sur la fiche produit Love Room
+   ADMIN — onglet "Tarifs & disponibilité" sur la fiche produit Love Room
    ========================================================================== */
 
 add_filter('woocommerce_product_data_tabs', function ($tabs) {
@@ -340,7 +358,7 @@ add_filter('woocommerce_product_data_tabs', function ($tabs) {
         return $tabs;
 
     $tabs['lip_pricing'] = array(
-        'label'  => __('Tarifs par date', 'linstant-plaisir'),
+        'label'  => __('Tarifs & disponibilité', 'linstant-plaisir'),
         'target' => 'lip_pricing_data',
         'class'  => array(),
     );
@@ -352,14 +370,57 @@ add_action('woocommerce_product_data_panels', function () {
     if (!$post || (int) $post->ID !== lip_get_room_product_id())
         return;
 
+    $weekly_labels = array(
+        1 => __('Lundi', 'linstant-plaisir'),
+        2 => __('Mardi', 'linstant-plaisir'),
+        3 => __('Mercredi', 'linstant-plaisir'),
+        4 => __('Jeudi', 'linstant-plaisir'),
+        5 => __('Vendredi', 'linstant-plaisir'),
+        6 => __('Samedi', 'linstant-plaisir'),
+        7 => __('Dimanche', 'linstant-plaisir'),
+    );
+    $weekly = get_post_meta($post->ID, '_lip_weekly_prices', true);
+    if (!is_array($weekly))
+        $weekly = array();
+
     $overrides = get_post_meta($post->ID, '_lip_price_overrides', true);
     if (!is_array($overrides))
         $overrides = array();
     ksort($overrides);
     ?>
     <div id="lip_pricing_data" class="panel woocommerce_options_panel">
+
         <div class="options_group" style="padding: 12px;">
-            <p><?php esc_html_e("Le prix par défaut (onglet Général) s'applique à toutes les dates sauf celles listées ci-dessous.", 'linstant-plaisir'); ?></p>
+            <p><strong><?php esc_html_e('1. Prix par jour de la semaine', 'linstant-plaisir'); ?></strong><br>
+                <?php esc_html_e("Ce sont vos tarifs habituels, toujours les mêmes chaque semaine. Laissez un champ vide pour utiliser le prix par défaut (onglet Général) ce jour-là.", 'linstant-plaisir'); ?>
+            </p>
+            <table class="widefat lip-weekly-prices-table" style="max-width: 420px;">
+                <thead>
+                    <tr>
+                        <th><?php esc_html_e('Jour', 'linstant-plaisir'); ?></th>
+                        <th><?php esc_html_e('Prix (€)', 'linstant-plaisir'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($weekly_labels as $day_num => $day_label): ?>
+                        <tr>
+                            <td><?php echo esc_html($day_label); ?></td>
+                            <td>
+                                <input type="number" step="0.01" min="0"
+                                    name="lip_weekly_price[<?php echo esc_attr($day_num); ?>]"
+                                    value="<?php echo isset($weekly[$day_num]) ? esc_attr($weekly[$day_num]) : ''; ?>"
+                                    placeholder="<?php esc_attr_e('prix par défaut', 'linstant-plaisir'); ?>">
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="options_group" style="padding: 12px; border-top: 1px solid #eee;">
+            <p><strong><?php esc_html_e('2. Dates exceptionnelles', 'linstant-plaisir'); ?></strong><br>
+                <?php esc_html_e("Pour une date précise (fête, jour férié, promo...), le prix ci-dessous remplace le prix du jour de la semaine.", 'linstant-plaisir'); ?>
+            </p>
             <table class="widefat lip-price-overrides-table" style="max-width: 420px;">
                 <thead>
                     <tr>
@@ -380,6 +441,7 @@ add_action('woocommerce_product_data_panels', function () {
             </table>
             <p><button type="button" class="button" id="lip-add-price-row"><?php esc_html_e('+ Ajouter une date', 'linstant-plaisir'); ?></button></p>
         </div>
+
     </div>
     <script>
         jQuery(function ($) {
@@ -403,6 +465,21 @@ add_action('woocommerce_process_product_meta', function ($post_id) {
     if ($post_id !== lip_get_room_product_id())
         return;
 
+    // Tarifs par jour de la semaine
+    $weekly = array();
+    if (!empty($_POST['lip_weekly_price']) && is_array($_POST['lip_weekly_price'])) {
+        $raw = wp_unslash($_POST['lip_weekly_price']);
+        foreach ($raw as $day_num => $price) {
+            $day_num = (int) $day_num;
+            $price   = (float) $price;
+            if ($day_num >= 1 && $day_num <= 7 && $price > 0) {
+                $weekly[$day_num] = $price;
+            }
+        }
+    }
+    update_post_meta($post_id, '_lip_weekly_prices', $weekly);
+
+    // Dates exceptionnelles
     $overrides = array();
 
     if (!empty($_POST['lip_override_date']) && is_array($_POST['lip_override_date'])) {

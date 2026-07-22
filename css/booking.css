@@ -58,6 +58,22 @@
 }
 
 /* ==========================================================================
+   Filet de sécurité — masque le widget de test "WP Armour" (honeypot)
+   s'il s'affiche dans le formulaire d'ajout au panier. Ce widget n'est
+   visible que pour les administrateurs connectés (jamais pour un client),
+   mais on le masque quand même ici pour ne pas casser la mise en page
+   pendant vos aperçus admin. La vraie solution reste de désactiver ce
+   widget dans Extensions > WP Armour > Réglages (option "Disable/Hide
+   Anti Spam Widget"), ce qui évite d'avoir à passer par du CSS.
+   ========================================================================== */
+form.cart [class*="armour" i],
+form.cart [id*="armour" i],
+form.cart [class*="honeypot" i],
+form.cart [id*="honeypot" i] {
+    display: none !important;
+}
+
+/* ==========================================================================
    Flatpickr — habillage aux couleurs du thème
    ========================================================================== */
 

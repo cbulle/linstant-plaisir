@@ -62,7 +62,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const checkOut = document.getElementById("lip_check_out");
     const priceAmount = document.getElementById("lip_price_amount");
 
-    if (!checkIn || !checkOut || typeof flatpickr === "undefined") return;
+    if (!checkIn || !checkOut) return;
+
+    if (typeof flatpickr === "undefined") {
+        // Si flatpickr.min.js n'a pas pu se charger (bloqueur de pub/vie privée, erreur réseau, etc.),
+        // on le signale clairement dans la console au lieu de laisser les champs de dates bruts
+        // (format AAAA-MM-JJ) sans calendrier ni calcul de prix.
+        console.warn("[L'Instant Plaisir] flatpickr n'a pas pu être chargé : le calendrier de réservation et le calcul du prix ne fonctionneront pas sur cette page.");
+        return;
+    }
 
     function formatEuro(value) {
         return value.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
@@ -98,33 +106,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const disabledRanges = window.lipDisabledRanges || [];
 
-    const fpCheckOut = flatpickr(checkOut, {
-        locale: "fr",
-        dateFormat: "Y-m-d",
-        altInput: true,
-        altFormat: "d/m/Y",
-        minDate: addDays(checkIn.value, 1),
-        disable: disabledRanges,
-        onChange: updatePrice,
-    });
+    try {
+        const fpCheckOut = flatpickr(checkOut, {
+            locale: "fr",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            minDate: addDays(checkIn.value, 1),
+            disable: disabledRanges,
+            onChange: updatePrice,
+        });
 
-    flatpickr(checkIn, {
-        locale: "fr",
-        dateFormat: "Y-m-d",
-        altInput: true,
-        altFormat: "d/m/Y",
-        minDate: "today",
-        disable: disabledRanges,
-        onChange: function (selectedDates, dateStr) {
-            const nextDay = addDays(dateStr, 1);
-            fpCheckOut.set("minDate", nextDay);
-            if (checkOut.value && checkOut.value <= dateStr) {
-                fpCheckOut.setDate(nextDay);
-            }
-            updatePrice();
-        },
-    });
+        flatpickr(checkIn, {
+            locale: "fr",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            minDate: "today",
+            disable: disabledRanges,
+            onChange: function (selectedDates, dateStr) {
+                const nextDay = addDays(dateStr, 1);
+                fpCheckOut.set("minDate", nextDay);
+                if (checkOut.value && checkOut.value <= dateStr) {
+                    fpCheckOut.setDate(nextDay);
+                }
+                updatePrice();
+            },
+        });
 
-    updatePrice();
+        updatePrice();
+    } catch (err) {
+        console.error("[L'Instant Plaisir] Erreur lors de l'initialisation du calendrier de réservation :", err);
+    }
 
 });
