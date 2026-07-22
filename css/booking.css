@@ -9,6 +9,14 @@
     margin: 20px 0;
 }
 
+.lip-booking-box {
+    margin-top: 10px;
+}
+
+.lip-book-button {
+    margin-top: 4px;
+}
+
 .lip-booking-dates .form-row {
     flex: 1;
     min-width: 140px;

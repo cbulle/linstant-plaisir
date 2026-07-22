@@ -96,9 +96,23 @@ function lip_get_room_price_for_date($date_ymd, $default_price)
     return (float) $default_price;
 }
 
-// Affiche les champs Arrivée / Départ + le prix calculé en direct, avant le bouton "Réservez maintenant"
-add_action('woocommerce_before_add_to_cart_button', 'lip_room_booking_fields');
-function lip_room_booking_fields()
+// Empêche le double-affichage : sur la fiche Love Room, on retire le prix et le bouton
+// "Ajouter au panier" par défaut de WooCommerce, remplacés par notre boîte de réservation
+// tout-en-un ci-dessous (dates + prix en direct + bouton), affichée dans TOUS les cas.
+add_action('woocommerce_single_product_summary', function () {
+    global $post;
+    if (!$post || (int) $post->ID !== lip_get_room_product_id())
+        return;
+    remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_price', 10);
+    remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30);
+}, 1);
+
+// Boîte de réservation Love Room : dates d'arrivée/départ, prix recalculé en direct par main.js,
+// et bouton "Réserver mon séjour". C'est un formulaire autonome qui poste directement vers le
+// gestionnaire standard d'ajout au panier de WooCommerce (name="add-to-cart"), donc elle
+// s'affiche systématiquement, sans dépendre du rendu interne du template WooCommerce.
+add_action('woocommerce_single_product_summary', 'lip_render_room_booking_box', 25);
+function lip_render_room_booking_box()
 {
     global $product;
     if (!$product || $product->get_id() !== lip_get_room_product_id())
@@ -106,22 +120,43 @@ function lip_room_booking_fields()
 
     $today    = date('Y-m-d');
     $tomorrow = date('Y-m-d', strtotime('+1 day'));
+
+    // Filet de sécurité admin : si le prix par défaut (onglet Général) est vide, WooCommerce
+    // considère le produit comme non "achetable" et masque normalement tout. Ici la boîte de
+    // réservation s'affiche quand même, mais on prévient l'admin pour qu'il corrige la vraie cause.
+    if (current_user_can('manage_woocommerce') && $product->get_regular_price() === '') {
+        echo '<p style="background:#fff3cd;border:1px solid #e0a800;color:#7a5c00;padding:10px 14px;border-radius:4px;font-size:13px;">'
+            . esc_html__("Admin uniquement : le champ « Prix régulier » (onglet Général de la fiche produit) est vide. Sans lui, le prix par défaut ne peut pas s'appliquer et WooCommerce peut masquer le bouton d'achat pour les clients.", 'linstant-plaisir')
+            . '</p>';
+    }
     ?>
-    <div class="lip-booking-dates">
-        <p class="form-row lip-check-in">
-            <label for="lip_check_in"><?php esc_html_e('Arrivée', 'linstant-plaisir'); ?></label>
-            <input type="text" id="lip_check_in" name="lip_check_in" readonly
-                value="<?php echo esc_attr($today); ?>" required>
-        </p>
-        <p class="form-row lip-check-out">
-            <label for="lip_check_out"><?php esc_html_e('Départ', 'linstant-plaisir'); ?></label>
-            <input type="text" id="lip_check_out" name="lip_check_out" readonly
-                value="<?php echo esc_attr($tomorrow); ?>" required>
-        </p>
-        <p class="lip-price-box">
-            <span class="lip-price-label"><?php esc_html_e('Prix du séjour', 'linstant-plaisir'); ?></span>
-            <span class="lip-price-amount" id="lip_price_amount">…</span>
-        </p>
+    <div class="lip-booking-box">
+        <form class="cart lip-booking-form" method="post" enctype="multipart/form-data">
+
+            <div class="lip-booking-dates">
+                <p class="form-row lip-check-in">
+                    <label for="lip_check_in"><?php esc_html_e('Arrivée', 'linstant-plaisir'); ?></label>
+                    <input type="text" id="lip_check_in" name="lip_check_in" readonly
+                        value="<?php echo esc_attr($today); ?>" required>
+                </p>
+                <p class="form-row lip-check-out">
+                    <label for="lip_check_out"><?php esc_html_e('Départ', 'linstant-plaisir'); ?></label>
+                    <input type="text" id="lip_check_out" name="lip_check_out" readonly
+                        value="<?php echo esc_attr($tomorrow); ?>" required>
+                </p>
+                <p class="lip-price-box">
+                    <span class="lip-price-label"><?php esc_html_e('Prix du séjour', 'linstant-plaisir'); ?></span>
+                    <span class="lip-price-amount" id="lip_price_amount">…</span>
+                </p>
+            </div>
+
+            <input type="hidden" name="quantity" value="1">
+            <button type="submit" name="add-to-cart" value="<?php echo esc_attr($product->get_id()); ?>"
+                class="single_add_to_cart_button button alt lip-book-button">
+                <?php esc_html_e('Réserver mon séjour', 'linstant-plaisir'); ?>
+            </button>
+
+        </form>
     </div>
     <?php
 }
