@@ -76,32 +76,50 @@ document.addEventListener("DOMContentLoaded", function () {
         return value.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
     }
 
+    // Construit une date AAAA-MM-JJ à partir des composants LOCAUX (pas d'UTC), pour que la clé
+    // corresponde exactement aux dates calculées côté serveur (PHP utilise le fuseau horaire du site).
+    // ATTENTION : ne jamais utiliser .toISOString() ici, ça convertit en UTC et décale la date d'un
+    // jour en arrière avec le fuseau français (UTC+1/+2) — c'était la cause du prix qui ne s'affichait jamais.
+    function formatYMD(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, "0");
+        const d = String(date.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+    }
+
     function addDays(dateStr, days) {
         const d = new Date(dateStr + "T00:00:00");
         d.setDate(d.getDate() + days);
-        return d.toISOString().split("T")[0];
+        return formatYMD(d);
     }
 
     function updatePrice() {
-        if (!priceAmount || !window.lipRoomDayPrices) return;
+        if (!priceAmount) return;
+
+        const defaultText = priceAmount.dataset.default || "…";
+
+        if (!window.lipRoomDayPrices) {
+            priceAmount.textContent = defaultText;
+            return;
+        }
 
         const start = new Date(checkIn.value + "T00:00:00");
         const end = new Date(checkOut.value + "T00:00:00");
 
         if (isNaN(start) || isNaN(end) || end <= start) {
-            priceAmount.textContent = "…";
+            priceAmount.textContent = defaultText;
             return;
         }
 
         let total = 0;
         const cursor = new Date(start);
         while (cursor < end) {
-            const key = cursor.toISOString().split("T")[0];
+            const key = formatYMD(cursor);
             total += window.lipRoomDayPrices[key] || 0;
             cursor.setDate(cursor.getDate() + 1);
         }
 
-        priceAmount.textContent = total > 0 ? formatEuro(total) : "…";
+        priceAmount.textContent = total > 0 ? formatEuro(total) : defaultText;
     }
 
     const disabledRanges = window.lipDisabledRanges || [];

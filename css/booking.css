@@ -105,11 +105,24 @@ form.cart [id*="honeypot" i] {
 
 .flatpickr-day {
     color: #f5f5f5 !important;
+    background: rgba(76, 175, 80, 0.18) !important;
+    border-color: rgba(76, 175, 80, 0.4) !important;
 }
 
-.flatpickr-day.flatpickr-disabled {
-    color: #555 !important;
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay {
+    background: transparent !important;
+    border-color: transparent !important;
+    opacity: 0.3;
+}
+
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.flatpickr-disabled:hover {
+    color: rgba(245, 245, 245, 0.55) !important;
+    background: rgba(220, 53, 69, 0.28) !important;
+    border-color: rgba(220, 53, 69, 0.55) !important;
     text-decoration: line-through;
+    cursor: not-allowed;
 }
 
 .flatpickr-day.selected,

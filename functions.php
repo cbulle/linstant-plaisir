@@ -154,7 +154,17 @@ function lip_render_room_booking_box()
                 </p>
                 <p class="lip-price-box">
                     <span class="lip-price-label"><?php esc_html_e('Prix du séjour', 'linstant-plaisir'); ?></span>
-                    <span class="lip-price-amount" id="lip_price_amount">…</span>
+                    <?php
+                    $starting_price = (float) $product->get_regular_price();
+                    $starting_label = $starting_price > 0
+                        ? sprintf(
+                            /* translators: %s: prix formaté, ex. 180,00 € */
+                            __('À partir de %s', 'linstant-plaisir'),
+                            number_format($starting_price, 2, ',', ' ') . ' €'
+                        )
+                        : '…';
+                    ?>
+                    <span class="lip-price-amount" id="lip_price_amount" data-default="<?php echo esc_attr($starting_label); ?>"><?php echo esc_html($starting_label); ?></span>
                 </p>
             </div>
 
@@ -333,23 +343,10 @@ function lip_save_order_item_dates($item, $cart_item_key, $values, $order)
     }
 }
 
-// Envoie au JS : prix des 60 prochains jours + toutes les plages déjà indisponibles (site + Airbnb + Booking.com)
-add_action('wp_footer', function () {
-    global $post;
-    if (!is_product() || !$post || (int) $post->ID !== lip_get_room_product_id())
-        return;
-
-    $product = wc_get_product($post->ID);
-    if (!$product)
-        return;
-
-    $default_price = (float) $product->get_regular_price();
-    $day_prices    = array();
-    for ($i = 0; $i < 60; $i++) {
-        $date = date('Y-m-d', strtotime("+{$i} days"));
-        $day_prices[$date] = lip_get_room_price_for_date($date, $default_price);
-    }
-
+// Calcule les plages de dates déjà occupées (commandes du site + Airbnb + Booking.com importés).
+// Réutilisée à la fois pour le calendrier client (front) et le calendrier de suivi (admin).
+function lip_get_room_disabled_ranges()
+{
     $disabled_ranges = array();
 
     $orders = wc_get_orders(array('status' => array('processing', 'completed', 'on-hold'), 'limit' => -1));
@@ -380,6 +377,27 @@ add_action('wp_footer', function () {
         }
     }
 
+    return $disabled_ranges;
+}
+
+// Envoie au JS : prix des 60 prochains jours + toutes les plages déjà indisponibles (site + Airbnb + Booking.com)
+add_action('wp_footer', function () {
+    global $post;
+    if (!is_product() || !$post || (int) $post->ID !== lip_get_room_product_id())
+        return;
+
+    $product = wc_get_product($post->ID);
+    if (!$product)
+        return;
+
+    $default_price = (float) $product->get_regular_price();
+    $day_prices    = array();
+    for ($i = 0; $i < 60; $i++) {
+        $date = date('Y-m-d', strtotime("+{$i} days"));
+        $day_prices[$date] = lip_get_room_price_for_date($date, $default_price);
+    }
+
+    $disabled_ranges = lip_get_room_disabled_ranges();
     $lowest = !empty($day_prices) ? min($day_prices) : 0;
     ?>
     <script>
@@ -394,6 +412,25 @@ add_action('wp_footer', function () {
 /* ==========================================================================
    ADMIN — onglet "Tarifs & disponibilité" sur la fiche produit Love Room
    ========================================================================== */
+
+// Charge flatpickr uniquement sur l'écran d'édition de la fiche Love Room, pour le calendrier
+// de suivi en lecture seule affiché dans l'onglet "Tarifs & disponibilité".
+add_action('admin_enqueue_scripts', function ($hook) {
+    if (!in_array($hook, array('post.php', 'post-new.php'), true))
+        return;
+
+    $post_id = isset($_GET['post']) ? absint($_GET['post']) : 0;
+    if (!$post_id || $post_id !== lip_get_room_product_id())
+        return;
+
+    wp_enqueue_style('flatpickr', get_template_directory_uri() . '/css/flatpickr.min.css', array(), '4.6.13');
+
+    wp_enqueue_script('flatpickr', get_template_directory_uri() . '/js/flatpickr/flatpickr.min.js', array(), '4.6.13', true);
+    wp_add_inline_script('flatpickr', "if (typeof flatpickr === 'undefined') { document.write('<scr' + 'ipt src=\"https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js\"><\/scr' + 'ipt>'); }");
+
+    wp_enqueue_script('flatpickr-fr', get_template_directory_uri() . '/js/flatpickr/fr.js', array('flatpickr'), '4.6.13', true);
+    wp_add_inline_script('flatpickr-fr', "if (typeof flatpickr === 'undefined' || !flatpickr.l10ns || !flatpickr.l10ns.fr) { document.write('<scr' + 'ipt src=\"https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/fr.js\"><\/scr' + 'ipt>'); }");
+});
 
 add_filter('woocommerce_product_data_tabs', function ($tabs) {
     global $post;
@@ -483,6 +520,40 @@ add_action('woocommerce_product_data_panels', function () {
                 </tbody>
             </table>
             <p><button type="button" class="button" id="lip-add-price-row"><?php esc_html_e('+ Ajouter une date', 'linstant-plaisir'); ?></button></p>
+        </div>
+
+        <div class="options_group" style="padding: 12px; border-top: 1px solid #eee;">
+            <p><strong><?php esc_html_e('3. Calendrier de disponibilité', 'linstant-plaisir'); ?></strong><br>
+                <?php esc_html_e("Vue d'ensemble en lecture seule : combine vos commandes du site + les imports Airbnb et Booking.com.", 'linstant-plaisir'); ?>
+            </p>
+            <p style="display:flex; gap:18px; align-items:center; font-size:13px;">
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#4caf50;margin-right:6px;vertical-align:middle;"></span><?php esc_html_e('Disponible', 'linstant-plaisir'); ?></span>
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#dc3545;margin-right:6px;vertical-align:middle;"></span><?php esc_html_e('Réservé', 'linstant-plaisir'); ?></span>
+            </p>
+            <div id="lip_admin_availability_calendar" style="max-width: 320px;"></div>
+            <style>
+                #lip_admin_availability_calendar .flatpickr-calendar { box-shadow: none; border: 1px solid #dcdcde; }
+                #lip_admin_availability_calendar .flatpickr-day { background: rgba(76,175,80,0.12); border-color: rgba(76,175,80,0.3); }
+                #lip_admin_availability_calendar .flatpickr-day.prevMonthDay,
+                #lip_admin_availability_calendar .flatpickr-day.nextMonthDay { background: transparent; border-color: transparent; opacity: .35; }
+                #lip_admin_availability_calendar .flatpickr-day.flatpickr-disabled,
+                #lip_admin_availability_calendar .flatpickr-day.flatpickr-disabled:hover { background: rgba(220,53,69,0.18) !important; border-color: rgba(220,53,69,0.4) !important; color: #a71d2a !important; text-decoration: line-through; cursor: default; }
+                #lip_admin_availability_calendar .flatpickr-day.today { border-color: #c5a059 !important; }
+            </style>
+            <script>
+                jQuery(function () {
+                    if (typeof flatpickr === 'undefined') return;
+                    flatpickr('#lip_admin_availability_calendar', {
+                        locale: 'fr',
+                        inline: true,
+                        clickOpens: false,
+                        disable: <?php echo wp_json_encode(lip_get_room_disabled_ranges()); ?>,
+                        onDayCreate: function (dObj, dStr, fp, dayElem) {
+                            dayElem.style.cursor = 'default';
+                        }
+                    });
+                });
+            </script>
         </div>
 
     </div>
