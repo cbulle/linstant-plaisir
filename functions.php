@@ -659,6 +659,7 @@ function lip_sync_external_calendars()
         'airbnb'   => get_option('lip_ical_airbnb_url'),
         'booking'  => get_option('lip_ical_booking_url'),
         'edenight' => get_option('lip_ical_edenight_url'),
+        'luvia'    => get_option('lip_ical_luvia_url'),
     );
 
     $all_busy = array();
@@ -760,6 +761,7 @@ function lip_render_sync_settings_page()
         update_option('lip_ical_airbnb_url', esc_url_raw(trim(wp_unslash($_POST['lip_ical_airbnb_url']))));
         update_option('lip_ical_booking_url', esc_url_raw(trim(wp_unslash($_POST['lip_ical_booking_url']))));
         update_option('lip_ical_edenight_url', esc_url_raw(trim(wp_unslash($_POST['lip_ical_edenight_url']))));
+        update_option('lip_ical_luvia_url', esc_url_raw(trim(wp_unslash($_POST['lip_ical_luvia_url']))));
         echo '<div class="notice notice-success"><p>Liens enregistrés.</p></div>';
     }
 
@@ -771,6 +773,7 @@ function lip_render_sync_settings_page()
     $airbnb_url   = get_option('lip_ical_airbnb_url', '');
     $booking_url  = get_option('lip_ical_booking_url', '');
     $edenight_url = get_option('lip_ical_edenight_url', '');
+    $luvia_url    = get_option('lip_ical_luvia_url', '');
     $export_url  = add_query_arg('lip_ical_export', '1', home_url('/'));
     $external    = get_option('lip_external_busy_dates', array());
     $last_sync   = get_option('lip_last_sync_time', 0);
@@ -778,7 +781,7 @@ function lip_render_sync_settings_page()
     <div class="wrap">
         <h1>Synchro Réservations — Love Room</h1>
 
-        <h2>1. Importer les réservations d'Airbnb, Booking.com et Edenight</h2>
+        <h2>1. Importer les réservations d'Airbnb, Booking.com, Edenight et LUVIA</h2>
         <form method="post">
             <?php wp_nonce_field('lip_save_sync_settings', 'lip_sync_nonce'); ?>
             <table class="form-table">
@@ -798,6 +801,12 @@ function lip_render_sync_settings_page()
                     <th><label for="lip_ical_edenight_url">Lien iCal Edenight</label></th>
                     <td><input type="url" style="width:500px" id="lip_ical_edenight_url" name="lip_ical_edenight_url"
                             value="<?php echo esc_attr($edenight_url); ?>"
+                            placeholder="https://....ics"></td>
+                </tr>
+                <tr>
+                    <th><label for="lip_ical_luvia_url">Lien iCal LUVIA</label></th>
+                    <td><input type="url" style="width:500px" id="lip_ical_luvia_url" name="lip_ical_luvia_url"
+                            value="<?php echo esc_attr($luvia_url); ?>"
                             placeholder="https://....ics"></td>
                 </tr>
             </table>
@@ -820,13 +829,13 @@ function lip_render_sync_settings_page()
 
         <hr>
 
-        <h2>2. Exporter les réservations du site vers Airbnb, Booking.com et Edenight</h2>
-        <p>Colle ce lien dans les réglages "Synchroniser des calendriers" d'Airbnb, de Booking.com et d'Edenight :</p>
+        <h2>2. Exporter les réservations du site vers Airbnb, Booking.com, Edenight et LUVIA</h2>
+        <p>Colle ce lien dans les réglages "Synchroniser des calendriers" d'Airbnb, de Booking.com, d'Edenight et de LUVIA :</p>
         <p><input type="text" readonly style="width:500px" value="<?php echo esc_url($export_url); ?>" onclick="this.select()"></p>
 
         <hr>
 
-        <h2>3. Dates actuellement bloquées via Airbnb / Booking.com / Edenight</h2>
+        <h2>3. Dates actuellement bloquées via Airbnb / Booking.com / Edenight / LUVIA</h2>
         <?php if (empty($external)): ?>
             <p>Aucune donnée pour l'instant — renseigne les liens ci-dessus puis clique sur "Synchroniser maintenant".</p>
         <?php else: ?>
